@@ -1,0 +1,91 @@
+.formInput {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: rgb(55 65 81);
+  border-radius: 0.25rem;
+  margin-top: 0.25rem;
+  border: 1px solid rgb(75 85 99);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.formInput:disabled {
+  cursor: not-allowed;
+  color: rgb(156 163 175);
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(209 213 219);
+}
+
+.errorMessage {
+  color: rgb(248 113 113);
+  text-align: center;
+  font-size: 0.875rem;
+  padding-top: 0.5rem;
+}
+
+.successMessage {
+  color: rgb(74 222 128);
+  text-align: center;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.btnPrimary {
+  width: 100%;
+  background-color: rgb(37 99 235);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: bold;
+  transition: background-color 200ms;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.btnPrimary:hover {
+  background-color: rgb(29 78 216);
+}
+
+.btnSecondary {
+  width: 100%;
+  background-color: rgb(22 163 74);
+  padding: 0.5rem;
+  margin-top: 1rem;
+  border-radius: 0.25rem;
+  font-weight: bold;
+  transition: background-color 200ms;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.btnSecondary:hover {
+  background-color: rgb(21 128 61);
+}
+
+.linkPrimary {
+  font-size: 0.875rem;
+  color: rgb(96 165 250);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.linkPrimary:hover {
+  text-decoration: underline;
+}
+
+.divider {
+  margin: 0 0.5rem;
+  color: rgb(107 114 128);
+}

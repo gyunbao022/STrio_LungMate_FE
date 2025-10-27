@@ -1,0 +1,184 @@
+.container {
+    background-color: #1a202c;
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    min-height: 100vh;
+}
+
+.title {
+    font-size: 1.875rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.filterContainer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(31, 41, 55, 0.5);
+    border-radius: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .filterContainer {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .filterContainer {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.filterGroup {
+}
+
+.filterLabel {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(156, 163, 175);
+    margin-bottom: 0.25rem;
+}
+
+.filterInput {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: rgb(55, 65, 81);
+    border-radius: 0.5rem;
+    border: 1px solid rgb(75, 85, 99);
+    color: white;
+}
+
+.filterInput:focus {
+    border-color: rgb(59, 130, 246);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.statusFilterContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.statusButtonGroup {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.5rem;
+    background-color: rgb(55, 65, 81);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    height: 100%;
+}
+
+.statusButton {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.statusButtonActive {
+    background-color: rgb(37, 99, 235);
+    color: white;
+}
+
+.statusButtonInactive {
+    background-color: rgb(55, 65, 81);
+    color: rgb(209, 213, 219);
+}
+
+.statusButtonInactive:hover {
+    background-color: rgb(75, 85, 99);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.table {
+    min-width: 100%;
+    text-align: left;
+}
+
+.tableHead {
+    border-bottom: 1px solid rgb(75, 85, 99);
+}
+
+.tableHead th {
+    padding: 1rem;
+}
+
+.tableBody {
+}
+
+.tableRow {
+    border-bottom: 1px solid rgb(55, 65, 81);
+    transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+    background-color: rgb(31, 41, 55);
+}
+
+.tableRow td {
+    padding: 1rem;
+}
+
+.emptyRow {
+    text-align: center;
+    padding: 2rem;
+    color: rgb(107, 114, 128);
+}
+
+.statusChipPending {
+    background-color: rgb(113, 63, 18);
+    color: rgb(253, 224, 71);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.statusChipCompleted {
+    background-color: rgb(20, 83, 45);
+    color: rgb(134, 239, 172);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.statusChipDefault {
+    background-color: rgb(55, 65, 81);
+    color: rgb(209, 213, 219);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.actionCell {
+    text-align: right;
+}
+
+.openButton {
+    background-color: rgb(6, 182, 212);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.25rem;
+}
+
+.openButton:hover {
+    background-color: rgb(8, 145, 178);
+}

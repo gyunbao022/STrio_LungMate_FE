@@ -1,0 +1,112 @@
+.container {
+  background-color: rgba(31, 41, 55, 0.5);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  backdrop-filter: blur(12px);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.searchContainer {
+  margin-bottom: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: rgb(55 65 81);
+  border-radius: 0.25rem;
+  border: 1px solid rgb(75 85 99);
+  color: white;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  font-size: 0.875rem;
+  text-align: left;
+  color: rgb(209 213 219);
+}
+
+.tableHeader {
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+  text-transform: uppercase;
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.tableHeaderCell {
+  padding: 0.75rem 1.5rem;
+}
+
+.tableHeaderCellCenter {
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+}
+
+.tableRow {
+  border-bottom: 1px solid rgb(55 65 81);
+}
+
+.tableRow:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.tableCell {
+  padding: 1rem 1.5rem;
+}
+
+.tableCellCenter {
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+.roleSelect {
+  background-color: rgb(75 85 99);
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  color: white;
+  border: none;
+}
+
+.actionButton {
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-right: 1rem;
+}
+
+.actionButton:hover {
+  text-decoration: underline;
+}
+
+.actionButtonEdit {
+  color: rgb(96 165 250);
+}
+
+.actionButtonDelete {
+  color: rgb(248 113 113);
+}
+
+.actionButtonSave {
+  color: rgb(74 222 128);
+}
+
+.actionButtonCancel {
+  color: rgb(156 163 175);
+  margin-right: 0;
+}

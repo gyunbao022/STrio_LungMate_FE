@@ -1,0 +1,233 @@
+.container {
+    width: 100%;
+    max-width: 64rem;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 1.875rem;
+    font-weight: bold;
+}
+
+.createButton {
+    background-color: rgb(37, 99, 235);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.createButton:hover {
+    background-color: rgb(29, 78, 216);
+}
+
+.loadingText {
+    text-align: center;
+}
+
+/* 편집 폼 */
+.editForm {
+    background-color: rgba(31, 41, 55, 0.5);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .editForm {
+        padding: 2rem;
+    }
+}
+
+.formInput {
+    width: 100%;
+    background-color: rgb(55, 65, 81);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.formTextarea {
+    width: 100%;
+    background-color: rgb(55, 65, 81);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    height: 12rem;
+}
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.formCancelButton {
+    background-color: rgb(75, 85, 99);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.formCancelButton:hover {
+    background-color: rgb(55, 65, 81);
+}
+
+.formCancelButton:disabled {
+    opacity: 0.5;
+}
+
+.formSaveButton {
+    background-color: rgb(22, 163, 74);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.formSaveButton:hover {
+    background-color: rgb(21, 128, 61);
+}
+
+.formSaveButton:disabled {
+    opacity: 0.5;
+}
+
+/* 공지사항 상세 */
+.detailContainer {
+    background-color: rgba(31, 41, 55, 0.5);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .detailContainer {
+        padding: 2rem;
+    }
+}
+
+.detailTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.detailMeta {
+    color: rgb(156, 163, 175);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgb(55, 65, 81);
+    padding-bottom: 1rem;
+}
+
+.detailContent {
+    color: rgb(209, 213, 219);
+    white-space: pre-wrap;
+}
+
+.detailActions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.backButton {
+    background-color: rgb(75, 85, 99);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.backButton:hover {
+    background-color: rgb(55, 65, 81);
+}
+
+.adminActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.editButton {
+    background-color: rgb(202, 138, 4);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.editButton:hover {
+    background-color: rgb(161, 98, 7);
+}
+
+.deleteButton {
+    background-color: rgb(220, 38, 38);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.deleteButton:hover {
+    background-color: rgb(185, 28, 28);
+}
+
+.deleteButton:disabled {
+    opacity: 0.5;
+}
+
+/* 목록 테이블 */
+.tableContainer {
+    background-color: rgba(31, 41, 55, 0.5);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    font-size: 0.875rem;
+    text-align: left;
+    color: rgb(209, 213, 219);
+}
+
+.tableHead {
+    font-size: 0.75rem;
+    color: rgb(156, 163, 175);
+    text-transform: uppercase;
+    background-color: rgba(55, 65, 81, 0.5);
+}
+
+.tableHead th {
+    padding: 0.75rem 1.5rem;
+}
+
+.tableRow {
+    border-bottom: 1px solid rgb(55, 65, 81);
+}
+
+.tableRow:hover {
+    background-color: rgba(55, 65, 81, 0.5);
+}
+
+.tableRow td {
+    padding: 1rem 1.5rem;
+}
+
+.tableButton {
+    font-weight: 500;
+    text-align: left;
+}
+
+.tableButton:hover {
+    text-decoration: underline;
+}

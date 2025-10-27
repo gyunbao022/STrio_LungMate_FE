@@ -1,0 +1,86 @@
+.uploaderContainer {
+  background-color: rgba(31, 41, 55, 0.5);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  backdrop-filter: blur(12px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploaderTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  align-self: flex-start;
+}
+
+.uploaderPreviewArea {
+  width: 100%;
+  height: 16rem;
+  border: 2px dashed rgb(75 85 99);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(17, 24, 39, 0.5);
+}
+
+.uploaderPreviewImage {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.uploaderPlaceholder {
+  text-align: center;
+  color: rgb(156 163 175);
+}
+
+.uploaderPlaceholderIcon {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.uploaderFileInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploaderButton {
+  width: 100%;
+  background-color: rgb(37 99 235);
+  color: white;
+  font-weight: bold;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 300ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.uploaderButton:hover:not(:disabled) {
+  background-color: rgb(29 78 216);
+}
+
+.uploaderButton:disabled {
+  background-color: rgb(107 114 128);
+  cursor: not-allowed;
+}
+
+.uploaderButtonIcon {
+  margin-right: 0.5rem;
+}

@@ -1,0 +1,141 @@
+.navbar {
+    width: 100%;
+    background-color: rgba(31, 41, 55, 0.5);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.navbarContainer {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+    .navbarContainer {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .navbarContainer {
+        padding: 0 2rem;
+    }
+}
+
+.navbarContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+}
+
+.logo {
+    flex-shrink: 0;
+    color: white;
+    font-weight: bold;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.logoIcon {
+    margin-right: 0.5rem;
+}
+
+.menuContainer {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .menuContainer {
+        display: flex;
+    }
+}
+
+.menuButton {
+    color: rgb(209, 213, 219);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.menuButton:hover {
+    background-color: rgba(55, 65, 81, 0.5);
+    color: white;
+}
+
+.userSection {
+    display: flex;
+    align-items: center;
+}
+
+.userName {
+    color: rgb(156, 163, 175);
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+}
+
+.profileButton {
+    color: rgb(209, 213, 219);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.profileButton:hover {
+    background-color: rgba(55, 65, 81, 0.5);
+    color: white;
+}
+
+.logoutButton {
+    background-color: rgba(220, 38, 38, 0.8);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.logoutButton:hover {
+    background-color: rgba(185, 28, 28, 0.8);
+}
+
+.authButtons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.loginButton {
+    background-color: rgba(37, 99, 235, 0.8);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.loginButton:hover {
+    background-color: rgba(29, 78, 216, 0.8);
+}
+
+.signupButton {
+    background-color: rgba(22, 163, 74, 0.8);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.signupButton:hover {
+    background-color: rgba(21, 128, 61, 0.8);
+}

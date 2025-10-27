@@ -1,0 +1,48 @@
+.container {
+    text-align: center;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.content {
+    max-width: 64rem;
+    margin: 0 auto;
+}
+
+.image {
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    margin: 0 auto 1.5rem;
+    width: 100%;
+    object-fit: cover;
+    max-width: 600px;
+}
+
+.infoBox {
+    background-color: rgb(31, 41, 55);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.infoTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgb(147, 197, 253);
+    margin-bottom: 0.75rem;
+}
+
+.infoText {
+    font-size: 1.125rem;
+    color: rgb(209, 213, 219);
+}
+
+.footer {
+    margin-top: 2rem;
+    font-size: 1.125rem;
+    color: rgb(156, 163, 175);
+}
