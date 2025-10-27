@@ -6,6 +6,7 @@ import styles from '../../styles/features/auth/Auth.module.css';
 function SignUp({ onNavigate }) {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState(''); // ✅ 성공 메시지 상태 추가
     
     const [members, setMembers] = useState({
         userId: "",
@@ -28,6 +29,14 @@ function SignUp({ onNavigate }) {
             setError("모든 항목을 입력해주세요.");
             return;
         }
+        if (members.userId.length < 4) { // 최소 길이 설정
+            setError("아이디는 4자 이상이어야 합니다.");
+            return;
+        }           
+        if (members.passwd.length < 4) { // 최소 길이 설정
+            setError("비밀번호는 4자 이상이어야 합니다.");
+            return;
+        }        
         if (members.passwd !== confirmPassword) {
             setError("비밀번호가 일치하지 않습니다.");
             return;
@@ -37,7 +46,12 @@ function SignUp({ onNavigate }) {
         .post(`/member/signup`, members)
         .then((response) => {
             console.log(response.data);
-            onNavigate('login');
+            // alert 대신 커스텀 메시지 표시
+            setSuccessMessage("회원가입이 성공적으로 완료되었습니다!");
+            setTimeout(() => {
+                setSuccessMessage('');
+                onNavigate('login');
+            }, 2000); // 2초 후 로그인 화면 이동
         })
         .catch((error) => {
             console.log("signup 오류:", error.message);
@@ -45,7 +59,7 @@ function SignUp({ onNavigate }) {
     };
     
     return (
-        <AuthLayout title="회원가입">
+        <AuthLayout title="회원가입">        
             <form onSubmit={onSubmit} className="space-y-4">
                 <div>
                     <label className={styles.formLabel}>아이디</label>
@@ -69,6 +83,7 @@ function SignUp({ onNavigate }) {
                 </div>
 
                 {error && <p className={styles.errorMessage}>{error}</p>}
+                {successMessage && <p className={styles.successMessage}>{successMessage}</p>}
                 
                 <button type="submit" className={styles.btnSecondary}>
                     가입하기
