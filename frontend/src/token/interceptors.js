@@ -25,7 +25,7 @@ try {
     "/auth/refresh",
     {},
     {
-        baseURL: "http://localhost:8090",
+        baseURL: "http://3.38.231.114:8090",
         headers: {
         "Authorization-refresh": refreshToken,
         },
@@ -50,7 +50,7 @@ try {
 * ✅ Axios 공통 인스턴스
 */
 const instance = axios.create({
-baseURL: "http://localhost:8090",
+baseURL: "http://3.38.231.114:8090",
 // JWT 헤더 기반 인증을 사용하므로 쿠키 전송을 비활성화하여 CSRF 403 가능성 제거
 withCredentials: false,
 });
