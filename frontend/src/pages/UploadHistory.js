@@ -273,14 +273,23 @@ function UploadHistory({ currentUser }) {
               </tr>
             ) : (
               filteredHistory.map((item) => {
-                const role = currentUser?.role;
-                const isAdmin = role === 'ADMIN' || role === 'A';
-                const isOperator = role === 'XRAY_OPERATOR' || role === 'X';
-                // 업로더 소유 비교는 uploaderId 기준으로 수행
-                const possibleIds = [currentUser?.memberId, currentUser?.userId, currentUser?.username].filter(Boolean);
-                const isOwner = isOperator && possibleIds.includes(item.uploaderId);
+                // 업로더 소유 비교는 uploaderId 기준으로 수행 (대소문자 무관)
+                const toKey = (v) => (v == null ? '' : String(v).trim().toLowerCase());
+                const myIds = [
+                  currentUser?.memberId,
+                  currentUser?.userId,
+                  currentUser?.username,
+                  currentUser?.userName,
+                  currentUser?.loginId,
+                  currentUser?.id,
+                ]
+                  .filter(Boolean)
+                  .map(toKey);
+                const myIdSet = new Set(myIds);
+                const isOwner = myIdSet.has(toKey(item.uploaderId));
                 const isCompleted = mapStatus(item.status) === 'COMPLETED';
-                const canDelete = (isAdmin || isOwner) && !isCompleted;
+                // 관리자도 본인이 업로드한 항목만 삭제 가능, COMPLETED 상태는 삭제 불가
+                const canDelete = isOwner && !isCompleted;
 
                 return (
                   <tr key={item.xrayId} className={styles.tableRow}>
@@ -290,7 +299,7 @@ function UploadHistory({ currentUser }) {
                     <td>{item.registrationDate}</td>
                     <td>{getStatusChip(item.status)}</td>
                     <td className={styles.actionCell}>
-                      {/* 삭제 버튼 권한 제어: 관리자 또는 자신이 업로드한 XRAY_OPERATOR, 단 COMPLETED는 숨김 */}
+                      {/* 삭제 버튼 권한 제어: 본인이 업로드한 항목만 삭제 가능, COMPLETED는 삭제 불가 */}
                       {canDelete && (
                         <button
                           onClick={() => handleDelete(item.xrayId)}

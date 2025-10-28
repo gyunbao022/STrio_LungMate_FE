@@ -291,7 +291,7 @@ function XRayUpload({ currentUser, onNavigate }) {
                 {uploadStatus && (
                     <div className={`${styles.statusMessage} ${uploadStatus === 'success' ? styles.statusSuccess : styles.statusError}`}>
                         {uploadStatus === 'success' 
-                            ? '성공적으로 업로드되었습니다. 잠시 후 업로드 내역 페이지로 이동합니다...' 
+                            ? '성공적으로 업로드되었습니다.' 
                             : '업로드 중 오류가 발생했습니다.'}
                     </div>
                 )}
