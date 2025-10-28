@@ -21,22 +21,33 @@ function UploadHistory({ currentUser }) {
         setIsLoading(true);
         setError(null);
         
-        // 백엔드 API 엔드포인트
-        // ADMIN은 전체 내역, XRAY_OPERATOR는 본인 업로드만
-        const endpoint = currentUser?.role === 'ADMIN' || currentUser?.role === 'A'
-          ? '/xray/history/all'  // 관리자용: 전체 내역
-          : '/xray/history';      // 일반 사용자: 본인 내역만
-          
-        const response = await api.get(endpoint);
+        // 백엔드 실제 API 엔드포인트 사용: /xray/list/{page}
+        const response = await api.get('/xray/list/1');
+        
+        // 응답 형식: { xrayList: [...], pv: {...} }
+        const rawList = response.data?.xrayList || [];
         
         // 응답 데이터 형식에 맞게 매핑
-        const historyData = Array.isArray(response.data) ? response.data.map(item => ({
-          xrayId: item.xrayId || item.id || item.xray_id,
-          patientId: item.patientId || item.patient_id,
-          uploader: item.uploaderName || item.uploaderId || item.uploader_name,
-          registrationDate: item.uploadDate || item.registrationDate || item.createdAt || item.upload_date,
-          status: item.status || 'PENDING'
-        })) : [];
+        const historyData = Array.isArray(rawList) ? rawList.map(item => {
+          const rawStatus = item.statusCd ?? item.status_cd ?? item.status;
+          const norm = rawStatus ? String(rawStatus).toUpperCase() : '';
+          const mappedStatus = !norm
+            ? 'PENDING'
+            : (norm === 'D'
+                ? 'COMPLETED'
+                : (norm === 'P' || norm === 'PENDING'
+                    ? 'PENDING'
+                    : norm));
+          return {
+            xrayId: item.xrayId ?? item.id ?? item.xray_id,
+            patientId: item.patientId ?? item.patient_id,
+            uploaderId: item.uploaderId ?? item.uploader_id ?? item.uploader,
+            uploaderName: item.uploaderName ?? item.uploader_name ?? item.uploaderId ?? item.uploader_id ?? '',
+            registrationDate: item.uploadDate ?? item.registrationDate ?? item.createdAt ?? item.upload_date,
+            statusCd: rawStatus ?? '',
+            status: mappedStatus,
+          };
+        }) : [];
         
         setUploadHistory(historyData);
       } catch (err) {
@@ -63,6 +74,12 @@ function UploadHistory({ currentUser }) {
   }, [currentUser]);
 
   const handleDelete = async (xrayIdToDelete) => {
+    // 상태가 COMPLETED인 경우 서버 호출 전에 차단
+    const target = uploadHistory.find((it) => it.xrayId === xrayIdToDelete);
+    if (target && String(target.status).toUpperCase() === 'COMPLETED') {
+      alert('완료 상태(COMPLETED)는 삭제할 수 없습니다.');
+      return;
+    }
     if (!window.confirm(`X-ray ID ${xrayIdToDelete}를 삭제하시겠습니까?`)) {
       return;
     }
@@ -82,14 +99,27 @@ function UploadHistory({ currentUser }) {
     }
   };
 
+  // DB 상태값을 화면에 맞게 변환
+  // 상태코드/라벨을 화면 라벨로 변환 (관용적으로 이중 방어)
+  const mapStatus = (val) => {
+    if (!val) return 'PENDING';
+    const u = String(val).toUpperCase();
+    if (u === 'D') return 'COMPLETED';
+    if (u === 'P') return 'PENDING';
+    if (u === 'PENDING') return 'PENDING';
+    if (u === 'COMPLETED') return 'COMPLETED';
+    return u;
+  };
+
   const getStatusChip = (status) => {
-    switch (status) {
+    const mapped = mapStatus(status);
+    switch (mapped) {
       case 'PENDING':
         return <span className={styles.statusChipPending}>PENDING</span>;
       case 'COMPLETED':
         return <span className={styles.statusChipCompleted}>COMPLETED</span>;
       default:
-        return <span className={styles.statusChipDefault}>{status}</span>;
+        return <span className={styles.statusChipDefault}>{mapped}</span>;
     }
   };
 
@@ -98,21 +128,46 @@ function UploadHistory({ currentUser }) {
   };
 
   // 현재 사용자의 역할에 따라 초기 데이터를 필터링합니다.
-  const userFilteredHistory = currentUser && currentUser.role === 'XRAY_OPERATOR'
-    ? uploadHistory.filter(item => item.uploader === currentUser.memberName)
-    : uploadHistory;
+  // XRAY_OPERATOR(또는 코드 'X')는 본인이 업로드한 항목만 볼 수 있도록 제한
+  const userFilteredHistory = (() => {
+    if (!currentUser) return uploadHistory;
+    const roleCode = String(currentUser.role || '').toUpperCase();
+    const isOperator = roleCode === 'XRAY_OPERATOR' || roleCode === 'X';
+    if (!isOperator) return uploadHistory;
+
+    const toKey = (v) => (v == null ? '' : String(v).trim().toLowerCase());
+    const myIds = [
+      currentUser.memberId,
+      currentUser.userId,
+      currentUser.username,
+      currentUser.userName,
+      currentUser.loginId,
+      currentUser.id,
+    ]
+      .filter(Boolean)
+      .map(toKey);
+
+    // 중복 제거
+    const myIdSet = new Set(myIds);
+
+    return uploadHistory.filter((item) => myIdSet.has(toKey(item.uploaderId)));
+  })();
 
   // 여러 필터 조건에 따라 데이터를 필터링합니다.
   const filteredHistory = userFilteredHistory
-    .filter(item => 
-      item.patientId.toLowerCase().includes(patientIdFilter.toLowerCase())
-    )
-    .filter(item => 
-      item.uploader.toLowerCase().includes(uploaderFilter.toLowerCase())
-    )
-    .filter(item => 
-      item.registrationDate.includes(dateFilter)
-    )
+    .filter(item => {
+      // patientId는 문자열로 처리 (백엔드가 String 타입이므로)
+      const pid = String(item.patientId || '');
+      return pid.includes(patientIdFilter);
+    })
+    .filter(item => {
+      const name = (item.uploaderName || '').toLowerCase();
+      return name.includes(uploaderFilter.toLowerCase());
+    })
+    .filter(item => {
+      const regDate = String(item.registrationDate || '');
+      return regDate.includes(dateFilter);
+    })
     .filter(item => {
       if (statusFilter === 'ALL') return true;
       return item.status === statusFilter;
@@ -138,7 +193,14 @@ function UploadHistory({ currentUser }) {
             placeholder="환자 ID로 검색..."
             className={styles.filterInput}
             value={patientIdFilter}
-            onChange={(e) => setPatientIdFilter(e.target.value)}
+            onChange={(e) => {
+              // 숫자만 허용: 입력/붙여넣기 모두에서 숫자 외 문자 제거
+              const onlyDigits = e.target.value.replace(/\D/g, '');
+              setPatientIdFilter(onlyDigits);
+            }}
+            pattern="^[0-9]*$"
+            title="숫자만 입력 (예: 12345)"
+            inputMode="numeric"
           />
         </div>
         <div>
@@ -210,26 +272,37 @@ function UploadHistory({ currentUser }) {
                 </td>
               </tr>
             ) : (
-              filteredHistory.map((item) => (
-                <tr key={item.xrayId} className={styles.tableRow}>
-                  <td>{item.xrayId}</td>
-                  <td>{item.patientId}</td>
-                  <td>{item.uploader}</td>
-                  <td>{item.registrationDate}</td>
-                  <td>{getStatusChip(item.status)}</td>
-                  <td className={styles.actionCell}>
-                    {/* 삭제 버튼 권한 제어 */}
-                    {(currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'A' || (currentUser.role === 'XRAY_OPERATOR' && currentUser.memberName === item.uploader))) && (
-                      <button 
-                        onClick={() => handleDelete(item.xrayId)} 
-                        className={styles.deleteButton}
-                      >
-                        삭제
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
+              filteredHistory.map((item) => {
+                const role = currentUser?.role;
+                const isAdmin = role === 'ADMIN' || role === 'A';
+                const isOperator = role === 'XRAY_OPERATOR' || role === 'X';
+                // 업로더 소유 비교는 uploaderId 기준으로 수행
+                const possibleIds = [currentUser?.memberId, currentUser?.userId, currentUser?.username].filter(Boolean);
+                const isOwner = isOperator && possibleIds.includes(item.uploaderId);
+                const isCompleted = mapStatus(item.status) === 'COMPLETED';
+                const canDelete = (isAdmin || isOwner) && !isCompleted;
+
+                return (
+                  <tr key={item.xrayId} className={styles.tableRow}>
+                    <td>{item.xrayId}</td>
+                    <td>{item.patientId}</td>
+                    <td>{item.uploaderName || item.uploaderId}</td>
+                    <td>{item.registrationDate}</td>
+                    <td>{getStatusChip(item.status)}</td>
+                    <td className={styles.actionCell}>
+                      {/* 삭제 버튼 권한 제어: 관리자 또는 자신이 업로드한 XRAY_OPERATOR, 단 COMPLETED는 숨김 */}
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDelete(item.xrayId)}
+                          className={styles.deleteButton}
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

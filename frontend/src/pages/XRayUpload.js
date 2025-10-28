@@ -16,8 +16,8 @@ function XRayUpload({ currentUser, onNavigate }) {
     const role = currentUser?.role;
     const hasPermission = role === 'A' || role === 'X' || role === 'ADMIN' || role === 'XRAY_OPERATOR';
 
-    // 입력 패턴 (대소문자 무시)
-    const PATIENT_ID_REGEX = /^P\d+$/i;
+    // 입력 패턴: 환자 ID는 숫자만 허용
+    const PATIENT_ID_REGEX = /^\d+$/;
     // 의사ID는 DB의 실제 형식(예: doc01)에 맞춰 영숫자/언더스코어/하이픈 허용
     const DOCTOR_ID_REGEX = /^[A-Za-z][A-Za-z0-9_-]*$/;
 
@@ -119,7 +119,7 @@ function XRayUpload({ currentUser, onNavigate }) {
 
         // 클라이언트 유효성 검증
         if (!PATIENT_ID_REGEX.test(patientId)) {
-            alert('환자 ID 형식이 올바르지 않습니다. 예: P12345');
+            alert('환자 ID는 숫자만 입력 가능합니다. 예: 12345');
             return;
         }
         if (!DOCTOR_ID_REGEX.test(doctorId)) {
@@ -220,11 +220,16 @@ function XRayUpload({ currentUser, onNavigate }) {
                                     type="text"
                                     id="patientId"
                                     value={patientId}
-                                    onChange={(e) => setPatientId(e.target.value)}
+                                    onChange={(e) => {
+                                        // 숫자 외 문자 제거하여 즉시 반영
+                                        const onlyDigits = e.target.value.replace(/\D/g, '');
+                                        setPatientId(onlyDigits);
+                                    }}
                                     className={styles.input}
-                                    placeholder="예: P12345"
-                                    pattern="^P[0-9]+$"
-                                    title="P로 시작하고 숫자만 입력 (예: P12345)"
+                                    placeholder="예: 12345"
+                                    pattern="^[0-9]+$"
+                                    title="숫자만 입력 (예: 12345)"
+                                    inputMode="numeric"
                                     required
                                 />
                             </div>
