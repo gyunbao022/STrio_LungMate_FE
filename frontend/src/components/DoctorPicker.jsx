@@ -34,6 +34,16 @@ export default function DoctorPicker({ value, onChange, placeholder = '의사 ID
         const label = name ? `${id} (${name})` : id;
         return id ? { id, label } : null;
       }).filter(Boolean);
+    } else if (data && Array.isArray(data.merberList)) { // 백엔드 /member/list 형태 대응 (키: merberList)
+      list = data.merberList.map((item) => {
+        const id = item.memberId || item.userId || '';
+        const name = item.memberName || item.userName || '';
+        const role = item.role || item.roleCd || '';
+        if (!id) return null;
+        if (role && String(role).toUpperCase() !== 'D') return null; // 의사만 필터
+        const label = name ? `${id} (${name})` : id;
+        return { id, label };
+      }).filter(Boolean);
     }
     return list;
   };
@@ -46,20 +56,40 @@ export default function DoctorPicker({ value, onChange, placeholder = '의사 ID
       let res = await api.get(endpoint);
       let list = parseList(res.data);
 
-      // Fallback: try search endpoint with empty query
+      // If empty, try search endpoint
       if (!list || list.length === 0) {
         try {
           res = await api.get('/members/doctors/search', { params: { q: '' } });
           list = parseList(res.data);
-        } catch (e) {
-          // ignore and keep first error
-        }
+        } catch {}
+      }
+
+      // If still empty, try legacy member list and filter role=D
+      if (!list || list.length === 0) {
+        try {
+          res = await api.get('/member/list');
+          list = parseList(res.data);
+        } catch {}
       }
 
       setOptions(list || []);
     } catch (err) {
-      setError('의사 목록을 불러오지 못했습니다.');
-      setOptions([]);
+      // If initial endpoint failed (e.g., 403), attempt fallbacks here too
+      try {
+        let res = await api.get('/members/doctors/search', { params: { q: '' } });
+        let list = parseList(res.data);
+        if (!list || list.length === 0) {
+          try {
+            res = await api.get('/member/list');
+            list = parseList(res.data);
+          } catch {}
+        }
+        setOptions(list || []);
+        if (!list || list.length === 0) setError('의사 목록이 비어 있습니다.');
+      } catch (fallbackErr) {
+        setError('의사 목록을 불러오지 못했습니다.');
+        setOptions([]);
+      }
     } finally {
       setLoading(false);
     }

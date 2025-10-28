@@ -112,14 +112,11 @@ async (error) => {
         // 새 토큰 저장
         localStorage.setItem("Authorization", bearerToken);
 
-        // 요청 헤더 갱신
-        originalRequest.headers["Authorization"] = bearerToken;
-        if (
-        originalRequest.data instanceof FormData &&
-        !originalRequest.headers["Content-Type"]
-        ) {
-        originalRequest.headers["Content-Type"] = "multipart/form-data";
-        }
+    // 요청 헤더 갱신
+    originalRequest.headers["Authorization"] = bearerToken;
+    // 주의: FormData 전송 시 Content-Type은 브라우저가 boundary 포함하여 자동 설정해야 함
+    // 수동으로 'multipart/form-data'를 지정하면 boundary 누락으로 서버에서 400/401/415 문제가 발생할 수 있음
+    // 따라서 여기서는 Content-Type을 건드리지 않습니다.
 
         // ✅ 재요청 실행 (403 발생 시 권한 부족 가능성 높음)
         return instance(originalRequest);

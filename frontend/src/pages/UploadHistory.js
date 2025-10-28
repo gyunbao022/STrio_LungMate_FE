@@ -1,34 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api/client';
 import styles from '../styles/pages/UploadHistory.module.css';
-
-// 업로드 내역에 사용할 초기 예시 데이터입니다. (업로더 이름을 'xray유저'로 변경)
-const initialUploadHistoryData = [
-  {
-    xrayId: '5012',
-    patientId: '100023',
-    uploader: 'xray유저', // 현재 로그인된 xray유저와 일치하도록 수정
-    registrationDate: '2025-09-30',
-    status: 'PENDING',
-  },
-  {
-    xrayId: '5013',
-    patientId: '100024',
-    uploader: 'another_xray_user', // 다른 업로더
-    registrationDate: '2025-09-30',
-    status: 'PENDING',
-  },
-  {
-    xrayId: '5014',
-    patientId: '100025',
-    uploader: 'xray유저', // 현재 로그인된 xray유저와 일치하도록 수정
-    registrationDate: '2025-10-01',
-    status: 'COMPLETED',
-  },
-];
 
 // App.js로부터 currentUser를 props로 받습니다.
 function UploadHistory({ currentUser }) {
-  const [uploadHistory, setUploadHistory] = useState(initialUploadHistoryData);
+  const [uploadHistory, setUploadHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // 필터 상태 관리
   const [patientIdFilter, setPatientIdFilter] = useState('');
@@ -36,10 +14,72 @@ function UploadHistory({ currentUser }) {
   const [dateFilter, setDateFilter] = useState(''); // 등록일 필터 추가
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  const handleDelete = (xrayIdToDelete) => {
-    const updatedHistory = uploadHistory.filter(item => item.xrayId !== xrayIdToDelete);
-    setUploadHistory(updatedHistory);
-    console.log(`ID가 ${xrayIdToDelete}인 항목을 삭제했습니다.`);
+  // 업로드 내역 불러오기
+  useEffect(() => {
+    const fetchUploadHistory = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // 백엔드 API 엔드포인트
+        // ADMIN은 전체 내역, XRAY_OPERATOR는 본인 업로드만
+        const endpoint = currentUser?.role === 'ADMIN' || currentUser?.role === 'A'
+          ? '/xray/history/all'  // 관리자용: 전체 내역
+          : '/xray/history';      // 일반 사용자: 본인 내역만
+          
+        const response = await api.get(endpoint);
+        
+        // 응답 데이터 형식에 맞게 매핑
+        const historyData = Array.isArray(response.data) ? response.data.map(item => ({
+          xrayId: item.xrayId || item.id || item.xray_id,
+          patientId: item.patientId || item.patient_id,
+          uploader: item.uploaderName || item.uploaderId || item.uploader_name,
+          registrationDate: item.uploadDate || item.registrationDate || item.createdAt || item.upload_date,
+          status: item.status || 'PENDING'
+        })) : [];
+        
+        setUploadHistory(historyData);
+      } catch (err) {
+        console.error('업로드 내역 조회 실패:', err);
+        
+        // 404면 데이터가 없는 것으로 처리
+        if (err.response?.status === 404) {
+          setUploadHistory([]);
+          setError(null);
+        } else {
+          setError('업로드 내역을 불러오는데 실패했습니다.');
+          setUploadHistory([]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      fetchUploadHistory();
+    } else {
+      setIsLoading(false);
+    }
+  }, [currentUser]);
+
+  const handleDelete = async (xrayIdToDelete) => {
+    if (!window.confirm(`X-ray ID ${xrayIdToDelete}를 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      // 백엔드 삭제 API 호출
+      await api.delete(`/xray/${xrayIdToDelete}`);
+      
+      // 로컬 상태 업데이트
+      const updatedHistory = uploadHistory.filter(item => item.xrayId !== xrayIdToDelete);
+      setUploadHistory(updatedHistory);
+      
+      alert('삭제되었습니다.');
+    } catch (err) {
+      console.error('삭제 실패:', err);
+      alert('삭제에 실패했습니다.');
+    }
   };
 
   const getStatusChip = (status) => {
@@ -82,7 +122,13 @@ function UploadHistory({ currentUser }) {
     <div className={styles.container}>
       <h1 className={styles.title}>업로드 내역</h1>
       
-      {/* 필터 컨트롤 */}
+      {!currentUser ? (
+        <div className={styles.emptyMessage}>
+          로그인이 필요합니다.
+        </div>
+      ) : (
+        <>
+          {/* 필터 컨트롤 */}
       <div className={styles.filterContainer}>
         <div>
           <label htmlFor="patientId" className={styles.filterLabel}>환자 ID</label>
@@ -145,7 +191,19 @@ function UploadHistory({ currentUser }) {
             </tr>
           </thead>
           <tbody>
-            {filteredHistory.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan="6" className={styles.emptyRow}>
+                  로딩 중...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="6" className={styles.emptyRow}>
+                  {error}
+                </td>
+              </tr>
+            ) : filteredHistory.length === 0 ? (
               <tr>
                 <td colSpan="6" className={styles.emptyRow}>
                   검색 결과가 없습니다.
@@ -161,7 +219,7 @@ function UploadHistory({ currentUser }) {
                   <td>{getStatusChip(item.status)}</td>
                   <td className={styles.actionCell}>
                     {/* 삭제 버튼 권한 제어 */}
-                    {(currentUser && (currentUser.role === 'ADMIN' || (currentUser.role === 'XRAY_OPERATOR' && currentUser.memberName === item.uploader))) && (
+                    {(currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'A' || (currentUser.role === 'XRAY_OPERATOR' && currentUser.memberName === item.uploader))) && (
                       <button 
                         onClick={() => handleDelete(item.xrayId)} 
                         className={styles.deleteButton}
@@ -176,6 +234,8 @@ function UploadHistory({ currentUser }) {
           </tbody>
         </table>
       </div>
+        </>
+      )}
     </div>
   );
 }

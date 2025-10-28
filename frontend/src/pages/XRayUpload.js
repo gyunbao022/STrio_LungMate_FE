@@ -4,7 +4,7 @@ import styles from '../styles/pages/XRayUpload.module.css';
 import DoctorPicker from '../components/DoctorPicker';
 
 
-function XRayUpload({ currentUser }) {
+function XRayUpload({ currentUser, onNavigate }) {
     const [patientId, setPatientId] = useState('');
     const [doctorId, setDoctorId] = useState('');
     const [imageFile, setImageFile] = useState(null);
@@ -110,6 +110,8 @@ function XRayUpload({ currentUser }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // 중복 제출 방지 (Enter 연타, 더블클릭 등)
+        if (isLoading) return;
         if (!patientId || !doctorId || !imageFile) {
             alert('환자 ID, 담당의사 ID, 그리고 이미지 파일을 모두 입력해주세요.');
             return;
@@ -158,6 +160,13 @@ function XRayUpload({ currentUser }) {
             setPatientId('');
             setDoctorId('');
             setImageFile(null);
+            
+            // 2초 후 업로드 내역 페이지로 이동
+            setTimeout(() => {
+                if (onNavigate) {
+                    onNavigate('upload-history');
+                }
+            }, 2000);
 
         } catch (error) {
             console.error('Upload error:', error);
@@ -225,8 +234,8 @@ function XRayUpload({ currentUser }) {
                                     value={doctorId}
                                     onChange={(id) => setDoctorId(id)}
                                     placeholder="의사 ID를 선택하세요"
-                                    // endpoint는 백엔드 구현에 맞게 필요 시 변경
-                                    // endpoint="/members/doctors"
+                                    // 권한 문제로 /members/doctors가 403이면, 공개된 /member/list로 폴백
+                                    endpoint="/members/doctors"
                                 />
                                 {/* 입력 직접 허용도 유지하려면 아래 인풋 주석 해제
                                 <input
@@ -276,7 +285,9 @@ function XRayUpload({ currentUser }) {
                 {/* 업로드 상태 메시지 */}
                 {uploadStatus && (
                     <div className={`${styles.statusMessage} ${uploadStatus === 'success' ? styles.statusSuccess : styles.statusError}`}>
-                        {uploadStatus === 'success' ? '성공적으로 업로드되었습니다.' : '업로드 중 오류가 발생했습니다.'}
+                        {uploadStatus === 'success' 
+                            ? '성공적으로 업로드되었습니다. 잠시 후 업로드 내역 페이지로 이동합니다...' 
+                            : '업로드 중 오류가 발생했습니다.'}
                     </div>
                 )}
             </main>
