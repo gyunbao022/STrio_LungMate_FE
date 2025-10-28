@@ -112,28 +112,35 @@ async (error) => {
         // 새 토큰 저장
         localStorage.setItem("Authorization", bearerToken);
 
-        // 요청 헤더 갱신
-        originalRequest.headers["Authorization"] = bearerToken;
-        if (
-        originalRequest.data instanceof FormData &&
-        !originalRequest.headers["Content-Type"]
-        ) {
-        originalRequest.headers["Content-Type"] = "multipart/form-data";
-        }
+    // 요청 헤더 갱신
+    originalRequest.headers["Authorization"] = bearerToken;
+    // 주의: FormData 전송 시 Content-Type은 브라우저가 boundary 포함하여 자동 설정해야 함
+    // 수동으로 'multipart/form-data'를 지정하면 boundary 누락으로 서버에서 400/401/415 문제가 발생할 수 있음
+    // 따라서 여기서는 Content-Type을 건드리지 않습니다.
 
         // ✅ 재요청 실행 (403 발생 시 권한 부족 가능성 높음)
         return instance(originalRequest);
     } catch (refreshError) {
         console.error("❌ refreshToken 재발급 실패:", refreshError);
 
-        localStorage.removeItem("Authorization");
-        localStorage.removeItem("Authorization-refresh");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userName");
-        localStorage.removeItem("roleCd");
-        localStorage.removeItem("isLogin");
+        try {
+            localStorage.removeItem("Authorization");
+            localStorage.removeItem("Authorization-refresh");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("memberName");
+            localStorage.removeItem("roleCd");
+            localStorage.removeItem("email");
+            localStorage.removeItem("isLogin");
+        } catch {}
 
-        console.error("세션이 만료되었습니다. 다시 로그인해주세요.");
+        // 사용자에게 안내 후 로그인 페이지로 이동
+        if (typeof window !== 'undefined') {
+            setTimeout(() => {
+                alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                // SPA 상태 초기화를 위해 전체 리로드
+                window.location.href = '/';
+            }, 0);
+        }
 
         return Promise.reject(refreshError);
     }
@@ -141,7 +148,10 @@ async (error) => {
 
         // 403인 경우: 인증은 되었으나 권한 부족(AccessDenied) 가능성이 높음
         if (error.response && error.response.status === 403) {
-            console.warn("[auth] 403 Forbidden: 권한 부족 또는 서버 인가 규칙 미스매치 가능성");
+            // 디버깅을 위해 현재 보유한 토큰 페이로드를 함께 출력
+            const token = localStorage.getItem("Authorization");
+            const payload = decodeJwt(token);
+            console.warn("[auth] 403 Forbidden: 권한 부족 또는 서버 인가 규칙 미스매치 가능성", { authorities: payload?.authorities, sub: payload?.sub, roleCd: payload?.roleCd });
         }
 
         return Promise.reject(error);

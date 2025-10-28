@@ -107,7 +107,7 @@ function App() {
             case 'diagnosis-list':
                 return currentUser.role === 'D' || currentUser.role === 'A' ? <DiagnosisList onNavigate={handleNavigate} /> : <h2 className="text-center">접근 권한이 없습니다.</h2>;
             case 'xray-upload':
-                 return currentUser.role === 'X' ? <XRayUpload currentUser={currentUser} /> : <h2 className="text-center">접근 권한이 없습니다.</h2>;
+                 return currentUser.role === 'X' ? <XRayUpload currentUser={currentUser} onNavigate={handleNavigate} /> : <h2 className="text-center">접근 권한이 없습니다.</h2>;
             case 'upload-history':
                  return currentUser.role === 'X' || currentUser.role === 'A' ? <UploadHistory currentUser={currentUser} /> : <h2 className="text-center">접근 권한이 없습니다.</h2>;
             case 'main':
