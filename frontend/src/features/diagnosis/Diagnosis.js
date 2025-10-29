@@ -1,4 +1,4 @@
-// frontend/src/components/diagnosis/Diagnosis.js
+// frontend/src/features/diagnosis/Diagnosis.js
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 const BASE = process.env.REACT_APP_API_BASE || "http://localhost:8090";
@@ -77,6 +77,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
   const [doctorNotes, setDoctorNotes] = useState("");
   const [llmSummary, setLlmSummary] = useState("");
   const [saving, setSaving] = useState(false);
+  const [statusCd, setStatusCd] = useState(null); // 'D' or 'P'
 
   /* ---------- API 경로 ---------- */
   const API = useMemo(
@@ -129,7 +130,39 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
     [API]
   );
 
-  /* ---------- 분석 실행 ---------- */
+  /* ---------- 최신 저장 결과 로드 (의사 기록/상태 포함) ---------- */
+  const loadLatest = useCallback(
+    async (id, signal) => {
+      const res = await fetch(API.GET_RESULT_BY_ID(id), {
+        method: "GET",
+        signal,
+        cache: "no-store",
+      });
+      const text = await res.text().catch(() => "");
+      let json = null;
+      try {
+        json = text ? JSON.parse(text) : null;
+      } catch {}
+      if (!res.ok || !json) {
+        // 저장 결과가 없을 수도 있으니 null 반환
+        return null;
+      }
+      const payload = normalizePayload(
+        json?.result || json?.data || json || {}
+      );
+      // 추가 필드 포함
+      payload.doctorResult =
+        json.doctorResult ?? json?.result?.doctorResult ?? null;
+      payload.doctorImpression =
+        json.doctorImpression ?? json?.result?.doctorImpression ?? null;
+      payload.statusCd = json.statusCd ?? json?.result?.statusCd ?? null;
+      payload.diagId = payload.diagId ?? json.diagId ?? null;
+      return payload;
+    },
+    [API]
+  );
+
+  /* ---------- 진입 시: 최신 기록 확인 -> 필요 시 분석 ---------- */
   useEffect(() => {
     if (!xrayId) return;
     let active = true;
@@ -139,28 +172,56 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
       try {
         setErr(null);
         setLoading(true);
-        const payload = await analyzeById(xrayId, ac.signal);
+
+        // 1) 최신 저장본 우선 확인
+        const latest = await loadLatest(xrayId, ac.signal);
         if (!active) return;
 
-        const normalized = {
-          // 🔴 여기서 diagId를 반드시 state에 집어넣는다!
-          diagId: payload.diagId ?? payload.raw?.diagId ?? null,
-          xrayId: payload.xrayId ?? xrayId,
-          pred: payload.pred ?? "-",
-          prob: typeof payload.prob === "number" ? payload.prob : null,
-          overlayUrl: toAbsUrl(payload.overlayUrl),
-          originalUrl: toAbsUrl(payload.originalUrl),
-          camLayer: payload.camLayer ?? null,
-          threshold: payload.threshold ?? null,
-          raw: payload.raw,
-        };
-        setResult(normalized);
+        if (latest) {
+          const normalized = {
+            diagId: latest.diagId ?? latest.raw?.diagId ?? null,
+            xrayId: latest.xrayId ?? xrayId,
+            pred: latest.pred ?? "-",
+            prob: typeof latest.prob === "number" ? latest.prob : null,
+            overlayUrl: toAbsUrl(latest.overlayUrl),
+            originalUrl: toAbsUrl(latest.originalUrl),
+            camLayer: latest.camLayer ?? null,
+            threshold: latest.threshold ?? null,
+            raw: latest.raw,
+          };
+          setResult(normalized);
+          setStatusCd(latest.statusCd || null);
 
+          // COMPLETED(D)면 과거 의사 기록으로 폼 프리필 + 분석 생략
+          if ((latest.statusCd || "").toUpperCase() === "D") {
+            if (latest.doctorResult) setDiagnosis(latest.doctorResult);
+            if (latest.doctorImpression)
+              setDoctorNotes(latest.doctorImpression);
+            return; // 분석 호출 생략
+          }
+        }
+
+        // 2) COMPLETED가 아니면(또는 기록 없음) 분석 호출하여 신규 결과 생성
+        const analyzed = await analyzeById(xrayId, ac.signal);
+        if (!active) return;
+        const normalized2 = {
+          diagId: analyzed.diagId ?? analyzed.raw?.diagId ?? null,
+          xrayId: analyzed.xrayId ?? xrayId,
+          pred: analyzed.pred ?? "-",
+          prob: typeof analyzed.prob === "number" ? analyzed.prob : null,
+          overlayUrl: toAbsUrl(analyzed.overlayUrl),
+          originalUrl: toAbsUrl(analyzed.originalUrl),
+          camLayer: analyzed.camLayer ?? null,
+          threshold: analyzed.threshold ?? null,
+          raw: analyzed.raw,
+        };
+        setResult(normalized2);
+        // 초기 진단결과는 모델 판독으로 채움(수정 가능)
         const pctStr =
-          typeof normalized.prob === "number"
-            ? ` (${(normalized.prob * 100).toFixed(1)}%)`
+          typeof normalized2.prob === "number"
+            ? ` (${(normalized2.prob * 100).toFixed(1)}%)`
             : "";
-        setDiagnosis(`모델 판독: ${normalized.pred ?? "-"}` + pctStr);
+        setDiagnosis(`모델 판독: ${normalized2.pred ?? "-"}` + pctStr);
       } catch (e) {
         if (e.name !== "AbortError") {
           setErr(e.message || "분석 요청 실패");
@@ -175,7 +236,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
       active = false;
       ac.abort();
     };
-  }, [xrayId, analyzeById, toAbsUrl]);
+  }, [xrayId, analyzeById, loadLatest, toAbsUrl]);
 
   /* ---------- LLM 요약 ---------- */
   const handleLLMSummarize = async () => {
@@ -343,6 +404,20 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
                 <div>이미지: #{result.xrayId}</div>
                 {result.diagId != null && (
                   <div>진단 건: DIAG_ID #{result.diagId}</div>
+                )}
+                {statusCd && (
+                  <div>
+                    상태:{" "}
+                    <span
+                      className={
+                        statusCd.toUpperCase() === "D"
+                          ? "text-green-400"
+                          : "text-yellow-300"
+                      }
+                    >
+                      {statusCd.toUpperCase() === "D" ? "COMPLETED" : "PENDING"}
+                    </span>
+                  </div>
                 )}
                 {result.camLayer && <div>CAM Layer: {result.camLayer}</div>}
                 {result.threshold != null && (
