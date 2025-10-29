@@ -78,6 +78,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
   const [llmSummary, setLlmSummary] = useState("");
   const [saving, setSaving] = useState(false);
   const [statusCd, setStatusCd] = useState(null); // 'D' or 'P'
+  const [savedAiImpression, setSavedAiImpression] = useState(""); // ✅ COMPLETED일 때 과거 AI_IMPRESSION 표시용
 
   /* ---------- API 경로 ---------- */
   const API = useMemo(
@@ -130,7 +131,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
     [API]
   );
 
-  /* ---------- 최신 저장 결과 로드 (의사 기록/상태 포함) ---------- */
+  /* ---------- 최신 저장 결과 로드 (의사 기록/상태 + AI_IMPRESSION 포함) ---------- */
   const loadLatest = useCallback(
     async (id, signal) => {
       const res = await fetch(API.GET_RESULT_BY_ID(id), {
@@ -156,6 +157,8 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
       payload.doctorImpression =
         json.doctorImpression ?? json?.result?.doctorImpression ?? null;
       payload.statusCd = json.statusCd ?? json?.result?.statusCd ?? null;
+      payload.aiImpression =
+        json.aiImpression ?? json?.result?.aiImpression ?? null; // ✅ 서버에서 내려주는 과거 AI 요약
       payload.diagId = payload.diagId ?? json.diagId ?? null;
       return payload;
     },
@@ -172,6 +175,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
       try {
         setErr(null);
         setLoading(true);
+        setSavedAiImpression(""); // 새 xrayId 진입 시 초기화
 
         // 1) 최신 저장본 우선 확인
         const latest = await loadLatest(xrayId, ac.signal);
@@ -192,11 +196,12 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
           setResult(normalized);
           setStatusCd(latest.statusCd || null);
 
-          // COMPLETED(D)면 과거 의사 기록으로 폼 프리필 + 분석 생략
+          // COMPLETED(D)면 과거 기록 프리필 + AI_IMPRESSION 표시 + 분석 생략
           if ((latest.statusCd || "").toUpperCase() === "D") {
             if (latest.doctorResult) setDiagnosis(latest.doctorResult);
             if (latest.doctorImpression)
               setDoctorNotes(latest.doctorImpression);
+            if (latest.aiImpression) setSavedAiImpression(latest.aiImpression); // ✅ 표시
             return; // 분석 호출 생략
           }
         }
@@ -289,7 +294,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
           xrayId: result?.xrayId ?? Number(xrayId),
           doctorId: currentUser?.userId || "SYSTEM",
           aiResult: result?.pred || null,
-          aiImpression: llmSummary || null,
+          aiImpression: llmSummary || null, // 새 요약을 덮어쓰려면 사용
           doctorResult: diagnosis,
           doctorImpression: doctorNotes,
         }),
@@ -450,11 +455,34 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
 
             {/* 의사 소견 + LLM 요약 */}
             <div className="lg:col-span-1 p-4 rounded-xl bg-gray-800/60">
+              {/* ✅ COMPLETED(D)일 때 저장된 과거 AI 요약(읽기 전용) 표시 */}
+              {savedAiImpression && (
+                <div className="mb-3">
+                  <div className="text-xs text-gray-400 mb-1">
+                    저장된 AI 요약(읽기 전용)
+                  </div>
+                  <div className="text-xs text-gray-300 bg-gray-900 p-3 rounded whitespace-pre-wrap">
+                    {savedAiImpression}
+                  </div>
+                  <hr className="my-3 border-gray-700" />
+                </div>
+              )}
+
               <div className="flex items-center justify-between mb-2">
                 <label className="text-sm text-gray-300">의사 소견</label>
                 <button
                   onClick={handleLLMSummarize}
                   className="text-xs bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded"
+                  disabled={
+                    (statusCd || "").toUpperCase() === "D" &&
+                    !!savedAiImpression
+                  }
+                  title={
+                    (statusCd || "").toUpperCase() === "D" &&
+                    !!savedAiImpression
+                      ? "COMPLETED: 저장된 AI 요약이 있습니다"
+                      : undefined
+                  }
                 >
                   LLM 요약 만들기
                 </button>
