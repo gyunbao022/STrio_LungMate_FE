@@ -1,7 +1,7 @@
 // frontend/src/features/diagnosis/Diagnosis.js
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 
-const BASE = process.env.REACT_APP_API_BASE || "http://localhost:8090";  //2025.10.30 localhost -> 192.168.0.97
+const BASE = process.env.REACT_APP_API_BASE || "http://3.38.231.114:8090";  //2025.10.30 localhost -> 192.168.0.97
 const API_PREFIX = process.env.REACT_APP_API_PREFIX || "";
 
 /* ---------- 🔧 응답 정규화 유틸 ---------- */
@@ -88,7 +88,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
         `${BASE}${API_PREFIX}/api/analyze/result?xrayId=${encodeURIComponent(
           id
         )}&ts=${Date.now()}`,
-      POST_LLM_SUMMARY: "http://localhost:8000/api/llm-summarize",
+      POST_LLM_SUMMARY: "http://3.39.204.180:8000/api/llm-summarize",
       POST_SAVE_DIAGNOSIS: `${BASE}${API_PREFIX}/diagnosis/update`,
     }),
     []
