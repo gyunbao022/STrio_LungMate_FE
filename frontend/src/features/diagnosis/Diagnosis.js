@@ -1,7 +1,7 @@
 // frontend/src/features/diagnosis/Diagnosis.js
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 
-const BASE = process.env.REACT_APP_API_BASE || "http://localhost:8090";
+const BASE = process.env.REACT_APP_API_BASE || "http://localhost:8090";  //2025.10.30 localhost -> 192.168.0.97
 const API_PREFIX = process.env.REACT_APP_API_PREFIX || "";
 
 /* ---------- 🔧 응답 정규화 유틸 ---------- */
@@ -179,9 +179,11 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
 
         // 1) 최신 저장본 우선 확인
         const latest = await loadLatest(xrayId, ac.signal);
+        console.log("Latest saved diagnosis:", latest);
         if (!active) return;
 
         if (latest) {
+          console.log("Found existing diagnosis record.");
           const normalized = {
             diagId: latest.diagId ?? latest.raw?.diagId ?? null,
             xrayId: latest.xrayId ?? xrayId,
@@ -205,28 +207,31 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
             return; // 분석 호출 생략
           }
         }
+        else {
+          console.log("No existing diagnosis record found.");
+          // 2) COMPLETED가 아니면(또는 기록 없음) 분석 호출하여 신규 결과 생성
+          const analyzed = await analyzeById(xrayId, ac.signal);
+          if (!active) return;
+          const normalized2 = {
+            diagId: analyzed.diagId ?? analyzed.raw?.diagId ?? null,
+            xrayId: analyzed.xrayId ?? xrayId,
+            pred: analyzed.pred ?? "-",
+            prob: typeof analyzed.prob === "number" ? analyzed.prob : null,
+            overlayUrl: toAbsUrl(analyzed.overlayUrl),
+            originalUrl: toAbsUrl(analyzed.originalUrl),
+            camLayer: analyzed.camLayer ?? null,
+            threshold: analyzed.threshold ?? null,
+            raw: analyzed.raw,
+          };
+          setResult(normalized2);
+          // 초기 진단결과는 모델 판독으로 채움(수정 가능)
+          const pctStr =
+            typeof normalized2.prob === "number"
+              ? ` (${(normalized2.prob * 100).toFixed(1)}%)`
+              : "";
+          setDiagnosis(`모델 판독: ${normalized2.pred ?? "-"}` + pctStr);
+        }
 
-        // 2) COMPLETED가 아니면(또는 기록 없음) 분석 호출하여 신규 결과 생성
-        const analyzed = await analyzeById(xrayId, ac.signal);
-        if (!active) return;
-        const normalized2 = {
-          diagId: analyzed.diagId ?? analyzed.raw?.diagId ?? null,
-          xrayId: analyzed.xrayId ?? xrayId,
-          pred: analyzed.pred ?? "-",
-          prob: typeof analyzed.prob === "number" ? analyzed.prob : null,
-          overlayUrl: toAbsUrl(analyzed.overlayUrl),
-          originalUrl: toAbsUrl(analyzed.originalUrl),
-          camLayer: analyzed.camLayer ?? null,
-          threshold: analyzed.threshold ?? null,
-          raw: analyzed.raw,
-        };
-        setResult(normalized2);
-        // 초기 진단결과는 모델 판독으로 채움(수정 가능)
-        const pctStr =
-          typeof normalized2.prob === "number"
-            ? ` (${(normalized2.prob * 100).toFixed(1)}%)`
-            : "";
-        setDiagnosis(`모델 판독: ${normalized2.pred ?? "-"}` + pctStr);
       } catch (e) {
         if (e.name !== "AbortError") {
           setErr(e.message || "분석 요청 실패");
@@ -249,6 +254,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
       setErr("먼저 분석을 실행해 주세요.");
       return;
     }
+    console.log("LLM 요약 요청 이미지 URL:", result.originalUrl);
     setLlmSummary("요약 생성 중...");
     try {
       const res = await fetch(API.POST_LLM_SUMMARY, {
@@ -289,7 +295,7 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // 🔴 diagId를 우선적으로 보낸다(정확한 행 업데이트)
+          // diagId를 우선적으로 보낸다(정확한 행 업데이트)
           diagId: result?.diagId ?? null,
           xrayId: result?.xrayId ?? Number(xrayId),
           doctorId: currentUser?.userId || "SYSTEM",
@@ -324,12 +330,14 @@ function Diagnosis({ xrayId, currentUser, onNavigate }) {
           >
             목록으로
           </button>
+          {process.env.NODE_ENV === "development" && (
           <button
             onClick={() => setShowDebug((s) => !s)}
             className="px-3 py-2 rounded bg-gray-700 hover:bg-gray-600"
           >
             디버그 {showDebug ? "▲" : "▼"}
-          </button>
+            </button>
+          )}
         </div>
       </div>
 

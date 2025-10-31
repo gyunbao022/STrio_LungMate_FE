@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api/client';
 import styles from '../styles/pages/UploadHistory.module.css';
 
-function DiagnosisList({ currentUser }, onNavigate) {
+function DiagnosisList({ currentUser, onNavigate }) {
   const [uploadHistory, setUploadHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -180,7 +180,7 @@ function DiagnosisList({ currentUser }, onNavigate) {
     <div className={styles.container}>
       {/* ✅ 제목 + 조회버튼 한 줄 */}
       <div className={styles.titleBar}>
-        <h1 className={styles.title}>업로드 내역</h1>
+        <h1 className={styles.title}>판독 리스트</h1>
         <button
           onClick={() => fetchUploadHistory(1)}
           className={styles.searchButton}
